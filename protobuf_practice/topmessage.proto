@@ -9,4 +9,29 @@ syntax = "proto3";
 
 message TopMessage {
     optional int32 id = 1;
+    optional double val = 2;
+    optional string name = 3;
+    optional bool checked = 4;
+
+    enum EnumFruits {
+        reserved 6 to 10;
+        APPLE = 0;
+        PEAR = 1;
+        PEACH = 2;
+        BANANA = 3;
+        STRAWBERRY = 4;
+        CHOCOLATE = 5;
+    }
+    optional EnumFruits fruit = 5;
+    optional nestedMessage littlemessage = 6;
+
+    oneof PickOne {
+        string red = 1;
+        string blue = 2;
+    }
+}
+
+message nestedMessage {
+    optional int32 id = 1;
+    optional string name = 2;
 }
