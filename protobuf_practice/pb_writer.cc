@@ -6,10 +6,10 @@
 #include "../dst/topmessage.pb.h"
 using namespace std;
 
-// This function generates a random string
+// This function generates a random string with length [1,100]
 string generateRandomString() {
-    size_t length = sizeof(string);
-    const char* charmap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    size_t length = rand() % 100 + 1;
+    const char* charmap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ\0";
     const size_t charmapLength = strlen(charmap);
     auto generator = [&](){ return charmap[rand()%charmapLength]; };
     string result;
@@ -21,7 +21,7 @@ string generateRandomString() {
 // This function fills a TopMessage with random values for each field
 void generateOne(TopMessage* message) {
     message -> set_id(rand());
-    message -> set_val(((double)rand()/(double)RAND_MAX));
+    message -> set_val(((double) rand() / (double) RAND_MAX));
     message -> set_name(generateRandomString());
     message -> set_checked(rand() % 2 == 0);
 
@@ -49,44 +49,48 @@ int main(int argc, char* argv[]) {
     }
 
     // argv[1] is number of repeats, default 5
-    // argv[2] is the path of folder for messages, default ../files/messageX.txt
-    int repeat = 5;
-    string path = "files";
+    // argv[2] is the path of folder for messages, default ../messages.txt
+    int repeat = 1;
+    string path = "messages.txt";
     
     if (argc > 1 and atoi(argv[1]) > 0) {
         repeat = atoi(argv[1]);
     }
-    cout << "The Value of repeat is " << repeat << endl;
+    // cout << "The Value of repeat is " << repeat << endl;
 
     if (argc > 2 and *argv[2]) {
         path = argv[2];
     }
-    if (!fileExists(&path[0])) {
-        cerr << "File does not exist." << endl;
-        return -1;
-    }
-    cout << "The path for messages is " << path << endl;
+    // if (!fileExists(&path[0])) {
+    //     cerr << "File does not exist." << endl;
+    //     return -1;
+    // }
+    // cout << "The path for messages is " << path << endl;
+
+    // open the file saving messages
+    ofstream messageFile;
+    messageFile.open(path, ios::out | ios::binary);
 
     // repeat generating one message
     for(int i = 0; i < repeat; i ++) {
-        // create the local file
-        string fileName = path + "/message" + to_string(i) + ".txt";
-        cout << "Current file: " << fileName;
-        cout << endl;
-        char* charFileName = &fileName[0];
+        cout << "Current message #: " << i << endl;
 
         // generate a new message
         TopMessage message;
         generateOne(&message);
 
-        // save the new message in the created file
-        ofstream messageFile;
-        messageFile.open(fileName, ios::out | ios::binary);
+        // serialize and save the new message and its size in the file
         string serializedMessage;
         message.SerializeToString(&serializedMessage);
-        messageFile << serializedMessage;
-        messageFile.close();
+
+        const char* buffer = serializedMessage.data();
+        int size = serializedMessage.size();
+        cout << "Message size: " << size << endl;
+        messageFile.write(to_string(size).c_str(), 4);
+        messageFile.write(buffer, size);
     }
 
+    // close the file
+    messageFile.close();
     return 0;
 }

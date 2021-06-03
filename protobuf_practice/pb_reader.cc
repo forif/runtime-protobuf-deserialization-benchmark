@@ -8,7 +8,7 @@ using namespace std;
 
 // print the information of the given message
 void readMessage(TopMessage* message) {
-    cout << "Message ID :" << message -> id() << endl;
+    cout << "Message ID : " << message -> id() << endl;
     cout << "Message val: " << message -> val() << endl;
     cout << "Message name: " << message -> name() << endl;
     cout << "Message checked: " << message -> checked() << endl;
@@ -31,14 +31,14 @@ int main(int argc, char* argv[]) {
     }
 
     // argv[1] is number of repeats, default 5
-    // argv[2] is the path of folder for messages, default ../files/messageX.txt
-    int repeat = 5;
-    string path = "files";
+    // argv[2] is the path of folder for messages, default ../messages.txt
+    int repeat = 1;
+    string path = "messages.txt";
     
     if (argc > 1 and atoi(argv[1]) > 0) {
         repeat = atoi(argv[1]);
     }
-    cout << "The Value of repeat is " << repeat << endl;
+    // cout << "The Value of repeat is " << repeat << endl;
 
     if (argc > 2 and *argv[2]) {
         path = argv[2];
@@ -47,30 +47,33 @@ int main(int argc, char* argv[]) {
         cerr << "File does not exist." << endl;
         return -1;
     }
-    cout << "The path for messages is " << path << endl;
+    // cout << "The path for messages is " << path << endl;
+
+    // open the file saving messages
+    ifstream messageFile;
+    messageFile.open(path, ios::in | ios::binary);
 
     // repeat generating one message
     for(int i = 0; i < repeat; i ++) {
-        // check the local file, return error if not exist
-        string fileName = path + "/message" + to_string(i) + ".txt";
-        cout << "Current file: " << fileName;
-        cout << endl;
-        char* charFileName = &fileName[0];
-        if (!fileExists(charFileName)) {
-            cerr << "File does not exist." << endl;
-            return -1;
-        }
-        TopMessage message;
+        cout << "Current message #: " << i << endl;
 
         // deserialize and read the message
-        ifstream messageFile;
-        messageFile.open(fileName, ios::in | ios::binary);
+        int size;
+        char sizeBuffer[4];
+        messageFile.read(sizeBuffer, 4);
+        size = atoi(sizeBuffer);
+        cout << "Message size: " << size << endl;
+
+        char buffer[size];
         string serializedMessage;
-        messageFile >> serializedMessage;
+        TopMessage message;
+        messageFile.read(buffer, size);
+        serializedMessage = buffer;
         message.ParseFromString(serializedMessage);
         readMessage(&message);
-        messageFile.close();
     }
 
+    // close the file
+    messageFile.close();
     return 0;
 }

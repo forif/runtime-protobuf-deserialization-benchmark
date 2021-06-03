@@ -8,13 +8,13 @@ syntax = "proto3";
 // topmessage.proto --proto_path=/mnt/c/Users/get19/Documents/intern/tencent/protobuf-master/examples
 
 message TopMessage {
-    optional int32 id = 1;
-    optional double val = 2;
-    optional string name = 3;
-    optional bool checked = 4;
+    int32 id = 1;
+    double val = 2;
+    string name = 3;
+    bool checked = 4;
 
     enum EnumFruits {
-        reserved 6 to 10;
+        reserved 6 to 20;
         APPLE = 0;
         PEAR = 1;
         PEACH = 2;
@@ -22,16 +22,16 @@ message TopMessage {
         STRAWBERRY = 4;
         CHOCOLATE = 5;
     }
-    optional EnumFruits fruit = 5;
-    optional nestedMessage littlemessage = 6;
+    EnumFruits fruit = 21;
+    nestedMessage littlemessage = 22;
 
     oneof PickOne {
-        string red = 1;
-        string blue = 2;
+        bool red = 23;
+        bool blue = 24;
     }
 }
 
 message nestedMessage {
-    optional int32 id = 1;
-    optional string name = 2;
+    int32 id = 1;
+    string name = 2;
 }
