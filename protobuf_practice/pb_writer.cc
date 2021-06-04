@@ -26,10 +26,10 @@ void generateOne(TopMessage* message) {
     message -> set_checked(rand() % 2 == 0);
 
     // print out all values for checking
-    cout << "Message ID: " << message -> id() << endl;
-    cout << "Message val: " << message -> val() << endl;
-    cout << "Message name: " << message -> name() << endl;
-    cout << "Message checked: " << message -> checked() << endl;
+    // cout << "Message ID: " << message -> id() << endl;
+    // cout << "Message val: " << message -> val() << endl;
+    // cout << "Message name: " << message -> name() << endl;
+    // cout << "Message checked: " << message -> checked() << endl;
 }
 
 // This function checks if a file exists

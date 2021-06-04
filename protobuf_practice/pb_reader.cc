@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <time.h>
 #include "../dst/topmessage.pb.h"
 using namespace std;
 
@@ -53,25 +54,44 @@ int main(int argc, char* argv[]) {
     ifstream messageFile;
     messageFile.open(path, ios::in | ios::binary);
 
+    // start the time and byte counter
+    int totalBytes = 0;
+    double totalTime = 0;
+    clock_t clk;
+
     // repeat generating one message
     for(int i = 0; i < repeat; i ++) {
         cout << "Current message #: " << i << endl;
+        // for each message, start the timer individually
+        clk = clock();
 
-        // deserialize and read the message
+        // deserialize the message
         int size;
         char sizeBuffer[4];
         messageFile.read(sizeBuffer, 4);
         size = atoi(sizeBuffer);
-        cout << "Message size: " << size << endl;
+        // cout << "Message size: " << size << endl;
 
         char buffer[size];
-        string serializedMessage;
+        // string serializedMessage;
         TopMessage message;
         messageFile.read(buffer, size);
-        serializedMessage = buffer;
-        message.ParseFromString(serializedMessage);
+        // serializedMessage = buffer;
+        // message.ParseFromString(serializedMessage);
+        message.ParseFromArray(buffer, size);
+
+        // increment time and byte counter
+        totalBytes += size;
+        totalTime += (float) (clock() - clk) / CLOCKS_PER_SEC;
+
+        // read the message
         readMessage(&message);
     }
+
+    // calculate performance
+    cout << "Performance (printing out not counted):" << endl;
+    cout << "Number of messages processed per second: " << repeat / totalTime << endl;
+    cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 
     // close the file
     messageFile.close();
