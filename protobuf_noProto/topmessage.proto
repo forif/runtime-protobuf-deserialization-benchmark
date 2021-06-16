@@ -11,7 +11,7 @@ message TopMessage {
     int32 id = 1;
     double val = 2;
     string name = 3;
-    repeated bool checked = 4;
+    bool checked = 4;
 
     enum EnumFruits {
         reserved 6 to 20;
@@ -22,12 +22,12 @@ message TopMessage {
         STRAWBERRY = 4;
         CHOCOLATE = 5;
     }
-    EnumFruits fruit = 5;
+    EnumFruits fruit = 21;
     nestedMessage littlemessage = 22;
 
     oneof PickOne {
-        bool red = 6;
-        bool blue = 10;
+        bool red = 23;
+        bool blue = 24;
     }
 }
 
