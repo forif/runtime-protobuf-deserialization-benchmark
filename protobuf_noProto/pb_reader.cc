@@ -5,6 +5,7 @@
 #include <sys/types.h>    
 #include <sys/stat.h>    
 #include <fcntl.h>
+#include <memory>
  
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/dynamic_message.h>
@@ -19,11 +20,114 @@ using namespace google::protobuf::compiler;
 using namespace google::protobuf::util;
 using namespace std;
 
+DescriptorPool pool;
+int FDcount = 0;
+
+// string getNewPath(string old_path, string relative_path) {
+
+// }
+
+// This function build a Fild Descriptor from the given proto definition file
+const FileDescriptor* buildFileDescriptor(string file_path, string file_name) {
+    // open the proto definition file
+    int def_messageFile = open(file_path.c_str(), O_RDONLY);
+    FileInputStream file_input(def_messageFile);
+
+    // put the protobuf definition into FileDescriptorProto with Parser
+    // FileDescriptorProto is just an in-memory representation of the protobuf definition, it merely has any useful function
+    Tokenizer input(&file_input, NULL);
+    FileDescriptorProto file_desc_proto;
+    Parser parser;
+    if (!parser.Parse(&input, &file_desc_proto)) {
+        cerr << "Failed to parse .proto definition:" << endl;
+        return NULL;
+    }
+
+    // give the file a name if it does not have one, otherwise FileDescriptor will fail
+    // string file_name = "ABigAPIName" + to_string(FDcount);
+    cout << file_desc_proto.name() << endl;
+    if (!file_desc_proto.has_name()) {
+        file_desc_proto.set_name(file_name);
+    }
+    cout << file_desc_proto.name() << endl;
+    FDcount ++;
+
+    // use DescriptorPool to build a FileDescriptor
+    const FileDescriptor* file_desc = pool.BuildFile(file_desc_proto);
+    cout << pool.FindFileByName("TopMessage") << endl;
+    cout << pool.FindFileByName("topmessage") << endl;
+    cout << pool.FindFileByName("ABigAPIName0") << endl;
+    cout << file_desc->name() << endl;
+    // shared_ptr<FileDescriptor> file_desc = make_shared<FileDescriptor>(pool.BuildFile(file_desc_proto));
+    if (file_desc == NULL) {
+        cerr << "Cannot get file descriptor from file descriptor proto"
+            << file_desc_proto.DebugString();
+        return NULL;
+    }
+
+    return file_desc;
+}
+
 // This function checks if a file exists
 bool fileExists(const char *fileName) {
     ifstream infile(fileName);
     return infile.good();
 }
+
+// This function finds the file index of the message type with corresponding given name in the File Descriptor
+// returns -1 if not found
+int findFileIndex(const FileDescriptor* file_desc, string message_name) {
+    int message_count = file_desc -> message_type_count();
+    int ser_file_index = -1;
+    for (int message_index = 0; message_index < message_count; message_index ++) {
+        // check the message with current index
+        string message_type = file_desc -> message_type(message_index) -> name();
+        if (message_type == message_name) {
+            ser_file_index = message_index;
+        }
+
+        // print the fields of this message
+        // format: name: type (label) (number)
+        // all this can be commented out if not needed
+        const google::protobuf::Descriptor* message_desc = file_desc->FindMessageTypeByName(message_type);
+        if (message_desc == NULL) {
+            std::cerr << "Cannot get message descriptor of message: " << message_type
+            << ", DebugString(): " << file_desc->DebugString();
+            return -6;
+        }
+
+        cout << message_type << endl;
+        uint8_t c = 0;
+        for (int i = 1; c < message_desc->field_count(); i++) {
+            const FieldDescriptor* field = message_desc->FindFieldByNumber(i);
+            if (field) {
+                std::cout << field->name() << ": " << field->type_name() << " ("
+                            << field->label() << ")" << " ("
+                            << field->number() << ")" << std::endl;
+                c ++;
+            }
+            
+            if (i > 536870911) {
+                std::cerr << "Error fieldDescriptor object is NULL, field_count() = "
+                            << message_desc->field_count() << std::endl;
+            }
+        }
+
+        // change a line for aesthetic
+        cout << endl;
+    }
+
+    // if (ser_file_index == -1) {
+    //     std::cerr << "Given message type not found." << endl;
+    //     return -7;
+    // }
+
+    return ser_file_index;
+}
+
+// tuple<int, const FileDescriptor*> findImportedFileIndex() {
+    
+// }
 
 // Main function: generate deserialze the messages and print them
 // sample.txt for testing:
@@ -71,106 +175,44 @@ int main(int argc, char* argv[]) {
         message_name = argv[3];
     }
 
-    // open the proto definition file
-    int def_messageFile = open(definition_path.c_str(), O_RDONLY);
-    FileInputStream file_input(def_messageFile);
-
-    // put the protobuf definition into FileDescriptorProto with Parser
-    // FileDescriptorProto is just an in-memory representation of the protobuf definition, it merely has any useful function
-    Tokenizer input(&file_input, NULL);
-    FileDescriptorProto file_desc_proto;
-    Parser parser;
-    if (!parser.Parse(&input, &file_desc_proto)) {
-        std::cerr << "Failed to parse .proto definition:" << endl;
-        return -4;
-    }
-
-    // give the file a name if it does not have one, otherwise FileDescriptor will fail
-    string file_name = "ABigAPIName";
-    if (!file_desc_proto.has_name()) {
-        file_desc_proto.set_name(file_name);
-    }
-
-    // use DescriptorPool to build a FileDescriptor
     // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
-    google::protobuf::DescriptorPool pool;
-    const google::protobuf::FileDescriptor* file_desc = pool.BuildFile(file_desc_proto);
-    if (file_desc == NULL) {
-        std::cerr << "Cannot get file descriptor from file descriptor proto"
-        << file_desc_proto.DebugString();
-        return -5;
+    const FileDescriptor* file_desc2 = buildFileDescriptor("topmessage.proto", "TopMessage");
+    const FileDescriptor* file_desc = buildFileDescriptor(definition_path, "CrestMessage");
+
+    int importCount = file_desc->dependency_count();
+    cout << importCount << endl;
+    for (int i = 0; i < importCount; i ++) {
+        const FileDescriptor* temp_file = file_desc->dependency(i);
+        int temp = findFileIndex(temp_file, message_name);
     }
 
     // there may be multiple messages in one file, loop through them and
     // find the message matching the one in the serialized file
-    int message_count = file_desc -> message_type_count();
-    int ser_file_index = -1;
-    for (int message_index = 0; message_index < message_count; message_index ++) {
-        // check the message with current index
-        string message_type = file_desc -> message_type(message_index) -> name();
-        if (message_type == message_name) {
-            ser_file_index = message_index;
-        }
-
-        // print the fields of this message
-        // format: name: type (label) (number)
-        // all this can be commented out if not needed
-        const google::protobuf::Descriptor* message_desc =
-            file_desc->FindMessageTypeByName(message_type);
-        if (message_desc == NULL) {
-            std::cerr << "Cannot get message descriptor of message: " << message_type
-            << ", DebugString(): " << file_desc->DebugString();
-            return -6;
-        }
-
-        cout << message_type << endl;
-        uint8_t c = 0;
-        for (int i = 1; c < message_desc->field_count(); i++) {
-            const FieldDescriptor* field = message_desc->FindFieldByNumber(i);
-            if (field) {
-                std::cout << field->name() << ": " << field->type_name() << " ("
-                            << field->label() << ")" << " ("
-                            << field->number() << ")" << std::endl;
-                c ++;
-            }
-            
-            if (i > 536870911) {
-                std::cerr << "Error fieldDescriptor object is NULL, field_count() = "
-                            << message_desc->field_count() << std::endl;
-            }
-        }
-
-        // change a line for aesthetic
-        cout << endl;
-    }
-
-    if (ser_file_index == -1) {
-        std::cerr << "Given message type not found." << endl;
-        return -7;
-    }
+    int ser_file_index = findFileIndex(file_desc, message_name);
 
     // Create an empty Message object that will hold the deserialized message with Descriptor
     string message_type = file_desc -> message_type(ser_file_index) -> name();
     cout << message_type << endl;
 
-    const google::protobuf::Descriptor* message_desc =
+    const Descriptor* message_desc =
         file_desc->FindMessageTypeByName(message_type);
 
-    google::protobuf::DynamicMessageFactory factory;
-    const google::protobuf::Message* prototype_msg =
+    DynamicMessageFactory factory;
+    const Message* prototype_msg =
         factory.GetPrototype(message_desc);
     if (prototype_msg == NULL) {
-        std::cerr << "Cannot create prototype message from message descriptor";
+        cerr << "Cannot create prototype message from message descriptor";
         return -8;
     }
     
-    google::protobuf::Message* mutable_msg = prototype_msg->New();
+    Message* mutable_msg = prototype_msg->New();
     if (mutable_msg == NULL) {
-        std::cerr << "Failed in prototype_msg->New(); to create mutable message";
+        cerr << "Failed in prototype_msg->New(); to create mutable message";
         return -9;
     }
 
     // open the serialized file and read it into the created empty message object
+    // As before, the first four bytes will represent the size of the message
     ifstream ser_messageFile;
     ser_messageFile.open(ser_file_path, ios::in | ios::binary);
 
@@ -185,12 +227,12 @@ int main(int argc, char* argv[]) {
 
     // print out the deserialized result
     string output;
-    google::protobuf::util::JsonPrintOptions options;
+    JsonPrintOptions options;
     options.add_whitespace = true;
     options.always_print_primitive_fields = true;
     options.preserve_proto_field_names = true;
     MessageToJsonString(*mutable_msg, &output, options);
-    std::cout << output << std::endl;
+    cout << output << endl;
 
     // close the file
 

@@ -1,0 +1,12 @@
+// [START declaration]
+syntax = "proto3";
+import "topmessage.proto";
+
+// [START messages]
+
+message CrestMessage {
+    int32 id = 1;
+    double val = 2;
+    string name = 3;
+    TopMessage topM = 4;
+}
