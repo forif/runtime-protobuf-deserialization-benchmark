@@ -21,20 +21,57 @@ using namespace google::protobuf::util;
 using namespace std;
 
 DescriptorPool pool;
-int FDcount = 0;
 
-// string getNewPath(string old_path, string relative_path) {
+// This function removes the last part in a path
+string removeLast(string path) {
+    // if path is relative
+    if (path.size() == 0) {
+        return "../";
+    } else if (path.rfind("../") == path.size() - 3) {
+        return path + "../";
+    } else {
+        int index = path.find_last_of("/\\");
+        if (index == -1) {
+            return "";
+        } else {
+            // path is relative or absolute
+            return path.substr(0, path.find_last_of("/\\"));
+        }
+    }
+}
 
-// }
+// This function returns a new path based on the old path and a relative path from it
+string getNewPath(string old_path, string relative_path) {
+    // if relative_path is absolute, return it directly
+    if (relative_path.find_first_of("\\") != -1) {
+        return relative_path;
+    }
 
-// This function build a Fild Descriptor from the given proto definition file
-const FileDescriptor* buildFileDescriptor(string file_path, string file_name) {
+    // if it is indeed relative, build a new path from old_path
+    old_path = removeLast(old_path);
+    while (relative_path.find("../") != -1) {
+        old_path = removeLast(old_path);
+        relative_path = relative_path.substr(3);
+    }
+
+    return old_path + relative_path;
+}
+
+// This function build a Fild Descriptor and add it into the descriptor pool from the given proto definition file
+const FileDescriptor* buildFileDescriptor(string file_path) {
     // open the proto definition file
     int def_messageFile = open(file_path.c_str(), O_RDONLY);
+    string file_name = file_path.substr(file_path.find_last_of("/\\") + 1);
     FileInputStream file_input(def_messageFile);
 
+    // if the .proto is already built, skip
+    if (pool.FindFileByName(file_name)) {
+        return NULL;
+    }
+
     // put the protobuf definition into FileDescriptorProto with Parser
-    // FileDescriptorProto is just an in-memory representation of the protobuf definition, it merely has any useful function
+    // FileDescriptorProto is an in-memory representation of the protobuf definition, 
+    // and unlike the poor api description made by Google, it has useful functions
     Tokenizer input(&file_input, NULL);
     FileDescriptorProto file_desc_proto;
     Parser parser;
@@ -43,13 +80,17 @@ const FileDescriptor* buildFileDescriptor(string file_path, string file_name) {
         return NULL;
     }
 
+    // check if there are any dependency messages. If there is, build them first
+    for (int i = 0; i < file_desc_proto.dependency_size(); i ++) {
+        buildFileDescriptor(getNewPath(file_path, file_desc_proto.dependency(i)));
+    }
+
     // give the file a name if it does not have one, otherwise FileDescriptor will fail
     // string file_name = "ABigAPIName" + to_string(FDcount);
     if (!file_desc_proto.has_name()) {
         file_desc_proto.set_name(file_name);
     }
     cout << "file descriptor proto name: [" << file_desc_proto.name() << "]" << endl;
-    FDcount ++;
 
     // use DescriptorPool to build a FileDescriptor
     const FileDescriptor* file_desc = pool.BuildFile(file_desc_proto);
@@ -124,11 +165,8 @@ int findFileIndex(const FileDescriptor* file_desc, string message_name) {
     return ser_file_index;
 }
 
-// tuple<int, const FileDescriptor*> findImportedFileIndex() {
-    
-// }
-
 // Main function: generate deserialze the messages and print them
+// ./pb_reader crestmessage.proto sample.txt CrestMessage
 // sample.txt for testing:
 // Message ID: 1804289383
 // Message val: 0.394383
@@ -149,7 +187,7 @@ int main(int argc, char* argv[]) {
     }
 
     // default path of proto definition (argv[1]) is ../topmessage.proto
-    string definition_path = "topmessage.proto";
+    string definition_path = "test/topmessage.proto";
     if (argc > 1 and *argv[1]) {
         definition_path = argv[1];
     }
@@ -174,30 +212,32 @@ int main(int argc, char* argv[]) {
         message_name = argv[3];
     }
 
+    pool.AllowUnknownDependencies();
+
     // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
-    cout << "parsing top_message proto ..." << endl;
-    const FileDescriptor* file_desc2 = buildFileDescriptor("topmessage.proto", "topmessage.proto");
-    cout << "parsing crest_message proto ..." << endl;
-    const FileDescriptor* file_desc = buildFileDescriptor("crestmessage.proto", "crestmessage.proto");
+    cout << "building starts: " << endl;
+    // const FileDescriptor* file_desc2 = buildFileDescriptor("test/topmessage.proto");
+    // cout << "parsing crest_message proto ..." << endl;
+    const FileDescriptor* file_desc = buildFileDescriptor(definition_path);
     cout << "proto parsing done." << endl;
 
-    int importCount = file_desc->dependency_count();
-    cout << "topmessage import count: " << importCount << endl;
-    for (int i = 0; i < importCount; i ++) {
-	cout << "dependency " << i << ":" << endl;
-        const FileDescriptor* temp_file = file_desc->dependency(i);
-        int temp = findFileIndex(temp_file, message_name);
-    }
+    // int importCount = file_desc->dependency_count();
+    // cout << "topmessage import count: " << importCount << endl;
+    // for (int i = 0; i < importCount; i ++) {
+	//     cout << "dependency " << i << ":" << endl;
+    //     const FileDescriptor* temp_file = file_desc->dependency(i);
+    //     int temp = findFileIndex(temp_file, message_name);
+    // }
 
     // there may be multiple messages in one file, loop through them and
     // find the message matching the one in the serialized file
-    cout << "find file index for crest message ..." << endl;
-    int ser_file_index = findFileIndex(file_desc, "CrestMessage");
+    cout << "looking for file index for " << message_name << ": " << endl;
+    int ser_file_index = findFileIndex(file_desc, message_name);
     cout << "ser_file_index: " << ser_file_index << endl;
 
     // Create an empty Message object that will hold the deserialized message with Descriptor
     string message_type = file_desc -> message_type(ser_file_index) -> name();
-    cout << "message type: " << message_type << endl;
+    cout << "result message type: " << message_type << endl;
 
     const Descriptor* message_desc =
         file_desc->FindMessageTypeByName(message_type);
