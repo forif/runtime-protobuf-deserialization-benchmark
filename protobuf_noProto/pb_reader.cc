@@ -45,25 +45,24 @@ const FileDescriptor* buildFileDescriptor(string file_path, string file_name) {
 
     // give the file a name if it does not have one, otherwise FileDescriptor will fail
     // string file_name = "ABigAPIName" + to_string(FDcount);
-    cout << file_desc_proto.name() << endl;
     if (!file_desc_proto.has_name()) {
         file_desc_proto.set_name(file_name);
     }
-    cout << file_desc_proto.name() << endl;
+    cout << "file descriptor proto name: [" << file_desc_proto.name() << "]" << endl;
     FDcount ++;
 
     // use DescriptorPool to build a FileDescriptor
     const FileDescriptor* file_desc = pool.BuildFile(file_desc_proto);
-    cout << pool.FindFileByName("TopMessage") << endl;
-    cout << pool.FindFileByName("topmessage") << endl;
-    cout << pool.FindFileByName("ABigAPIName0") << endl;
-    cout << file_desc->name() << endl;
+    cout << "pool.FindFileByName(" << file_name << "): " << pool.FindFileByName(file_name) << endl;
+    //cout << pool.FindFileByName("topmessage") << endl;
+    //cout << pool.FindFileByName("ABigAPIName0") << endl;
     // shared_ptr<FileDescriptor> file_desc = make_shared<FileDescriptor>(pool.BuildFile(file_desc_proto));
     if (file_desc == NULL) {
-        cerr << "Cannot get file descriptor from file descriptor proto"
-            << file_desc_proto.DebugString();
+        cerr << "Cannot get file descriptor from file descriptor proto:\n"
+            << file_desc_proto.DebugString() << endl;
         return NULL;
     }
+    cout << "file descriptor name: [" << file_desc->name() << "]" << endl;
 
     return file_desc;
 }
@@ -176,23 +175,29 @@ int main(int argc, char* argv[]) {
     }
 
     // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
-    const FileDescriptor* file_desc2 = buildFileDescriptor("topmessage.proto", "TopMessage");
-    const FileDescriptor* file_desc = buildFileDescriptor(definition_path, "CrestMessage");
+    cout << "parsing top_message proto ..." << endl;
+    const FileDescriptor* file_desc2 = buildFileDescriptor("topmessage.proto", "topmessage.proto");
+    cout << "parsing crest_message proto ..." << endl;
+    const FileDescriptor* file_desc = buildFileDescriptor("crestmessage.proto", "crestmessage.proto");
+    cout << "proto parsing done." << endl;
 
     int importCount = file_desc->dependency_count();
-    cout << importCount << endl;
+    cout << "topmessage import count: " << importCount << endl;
     for (int i = 0; i < importCount; i ++) {
+	cout << "dependency " << i << ":" << endl;
         const FileDescriptor* temp_file = file_desc->dependency(i);
         int temp = findFileIndex(temp_file, message_name);
     }
 
     // there may be multiple messages in one file, loop through them and
     // find the message matching the one in the serialized file
-    int ser_file_index = findFileIndex(file_desc, message_name);
+    cout << "find file index for crest message ..." << endl;
+    int ser_file_index = findFileIndex(file_desc, "CrestMessage");
+    cout << "ser_file_index: " << ser_file_index << endl;
 
     // Create an empty Message object that will hold the deserialized message with Descriptor
     string message_type = file_desc -> message_type(ser_file_index) -> name();
-    cout << message_type << endl;
+    cout << "message type: " << message_type << endl;
 
     const Descriptor* message_desc =
         file_desc->FindMessageTypeByName(message_type);
