@@ -2,8 +2,8 @@
 syntax = "proto3";
 import "../topmessage.proto";
 import "../../crestmessage.proto";
-import "../../ceilingmessage.proto";
-import "../test2/highmessage.proto";
+// import "../../ceilingmessage.proto";
+// import "../test2/highmessage.proto";
 
 // [START messages]
 
@@ -13,6 +13,6 @@ message ClimaxMessage {
     string name = 3;
     TopMessage topM = 4;
     CrestMessage crestM = 5;
-    CeilingMessage ceilingM = 6;
-    HighMessage highM = 7;
+//    CeilingMessage ceilingM = 6;
+//    HighMessage highM = 7;
 }

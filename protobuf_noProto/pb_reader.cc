@@ -30,12 +30,12 @@ string removeLast(string path) {
     } else if (path.rfind("../") == path.size() - 3) {
         return path + "../";
     } else {
-        int index = path.find_last_of("/\\");
+        int index = path.find_last_of("/\\", path.size()-2);
         if (index == -1) {
             return "";
         } else {
             // path is relative or absolute
-            return path.substr(0, path.find_last_of("/\\"));
+            return path.substr(0, index+1);
         }
     }
 }
@@ -58,10 +58,11 @@ string getNewPath(string old_path, string relative_path) {
 }
 
 // This function build a Fild Descriptor and add it into the descriptor pool from the given proto definition file
-const FileDescriptor* buildFileDescriptor(string file_path) {
+// Try your absolute best to avoid importing the same dependency between two .proto files, 
+// especially if they are not in the same folder, as this does not seem to be supported
+const FileDescriptor* buildFileDescriptor(string file_path, string file_name) {
     // open the proto definition file
     int def_messageFile = open(file_path.c_str(), O_RDONLY);
-    string file_name = file_path.substr(file_path.find_last_of("/\\") + 1);
     FileInputStream file_input(def_messageFile);
 
     // if the .proto is already built, skip
@@ -82,28 +83,27 @@ const FileDescriptor* buildFileDescriptor(string file_path) {
 
     // check if there are any dependency messages. If there is, build them first
     for (int i = 0; i < file_desc_proto.dependency_size(); i ++) {
-        buildFileDescriptor(getNewPath(file_path, file_desc_proto.dependency(i)));
+        string temp = file_desc_proto.dependency(i);
+        buildFileDescriptor(getNewPath(file_path, temp), temp);
     }
 
     // give the file a name if it does not have one, otherwise FileDescriptor will fail
-    // string file_name = "ABigAPIName" + to_string(FDcount);
     if (!file_desc_proto.has_name()) {
         file_desc_proto.set_name(file_name);
     }
-    cout << "file descriptor proto name: [" << file_desc_proto.name() << "]" << endl;
+    // cout << "file descriptor proto name: [" << file_desc_proto.name() << "]" << endl;
+    // cout << "file_path: " << file_path << endl;
+    // cout << "file_name: " << file_name << endl;
 
     // use DescriptorPool to build a FileDescriptor
     const FileDescriptor* file_desc = pool.BuildFile(file_desc_proto);
-    cout << "pool.FindFileByName(" << file_name << "): " << pool.FindFileByName(file_name) << endl;
-    //cout << pool.FindFileByName("topmessage") << endl;
-    //cout << pool.FindFileByName("ABigAPIName0") << endl;
-    // shared_ptr<FileDescriptor> file_desc = make_shared<FileDescriptor>(pool.BuildFile(file_desc_proto));
+    // cout << "pool.FindFileByName(" << file_name << "): " << pool.FindFileByName(file_name) << endl;
     if (file_desc == NULL) {
-        cerr << "Cannot get file descriptor from file descriptor proto:\n"
-            << file_desc_proto.DebugString() << endl;
+        cerr << "Cannot get file descriptor from file descriptor proto:\n" << endl;
+            // << file_desc_proto.DebugString() << endl;
         return NULL;
     }
-    cout << "file descriptor name: [" << file_desc->name() << "]" << endl;
+    // cout << "file descriptor name: [" << file_desc->name() << "]" << endl;
 
     return file_desc;
 }
@@ -129,32 +129,32 @@ int findFileIndex(const FileDescriptor* file_desc, string message_name) {
         // print the fields of this message
         // format: name: type (label) (number)
         // all this can be commented out if not needed
-        const google::protobuf::Descriptor* message_desc = file_desc->FindMessageTypeByName(message_type);
-        if (message_desc == NULL) {
-            std::cerr << "Cannot get message descriptor of message: " << message_type
-            << ", DebugString(): " << file_desc->DebugString();
-            return -6;
-        }
+        // const google::protobuf::Descriptor* message_desc = file_desc->FindMessageTypeByName(message_type);
+        // if (message_desc == NULL) {
+        //     std::cerr << "Cannot get message descriptor of message: " << message_type
+        //     << ", DebugString(): " << file_desc->DebugString();
+        //     return -6;
+        // }
 
-        cout << message_type << endl;
-        uint8_t c = 0;
-        for (int i = 1; c < message_desc->field_count(); i++) {
-            const FieldDescriptor* field = message_desc->FindFieldByNumber(i);
-            if (field) {
-                std::cout << field->name() << ": " << field->type_name() << " ("
-                            << field->label() << ")" << " ("
-                            << field->number() << ")" << std::endl;
-                c ++;
-            }
+        // cout << message_type << endl;
+        // uint8_t c = 0;
+        // for (int i = 1; c < message_desc->field_count(); i++) {
+        //     const FieldDescriptor* field = message_desc->FindFieldByNumber(i);
+        //     if (field) {
+        //         std::cout << field->name() << ": " << field->type_name() << " ("
+        //                     << field->label() << ")" << " ("
+        //                     << field->number() << ")" << std::endl;
+        //         c ++;
+        //     }
             
-            if (i > 536870911) {
-                std::cerr << "Error fieldDescriptor object is NULL, field_count() = "
-                            << message_desc->field_count() << std::endl;
-            }
-        }
+        //     if (i > 536870911) {
+        //         std::cerr << "Error fieldDescriptor object is NULL, field_count() = "
+        //                     << message_desc->field_count() << std::endl;
+        //     }
+        // }
 
-        // change a line for aesthetic
-        cout << endl;
+        // // change a line for aesthetic
+        // cout << endl;
     }
 
     // if (ser_file_index == -1) {
@@ -212,28 +212,18 @@ int main(int argc, char* argv[]) {
         message_name = argv[3];
     }
 
-    pool.AllowUnknownDependencies();
-
     // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
-    cout << "building starts: " << endl;
-    // const FileDescriptor* file_desc2 = buildFileDescriptor("test/topmessage.proto");
-    // cout << "parsing crest_message proto ..." << endl;
-    const FileDescriptor* file_desc = buildFileDescriptor(definition_path);
-    cout << "proto parsing done." << endl;
-
-    // int importCount = file_desc->dependency_count();
-    // cout << "topmessage import count: " << importCount << endl;
-    // for (int i = 0; i < importCount; i ++) {
-	//     cout << "dependency " << i << ":" << endl;
-    //     const FileDescriptor* temp_file = file_desc->dependency(i);
-    //     int temp = findFileIndex(temp_file, message_name);
-    // }
+    // cout << "building starts: " << endl;
+    string file_name = definition_path.substr(definition_path.find_last_of("/\\") + 1);
+    const FileDescriptor* file_desc = buildFileDescriptor(definition_path, file_name);
+    if (!file_desc) return -4;
+    // cout << "proto parsing done." << endl;
 
     // there may be multiple messages in one file, loop through them and
     // find the message matching the one in the serialized file
-    cout << "looking for file index for " << message_name << ": " << endl;
+    // cout << "looking for file index for " << message_name << ": " << endl;
     int ser_file_index = findFileIndex(file_desc, message_name);
-    cout << "ser_file_index: " << ser_file_index << endl;
+    // cout << "ser_file_index: " << ser_file_index << endl;
 
     // Create an empty Message object that will hold the deserialized message with Descriptor
     string message_type = file_desc -> message_type(ser_file_index) -> name();
