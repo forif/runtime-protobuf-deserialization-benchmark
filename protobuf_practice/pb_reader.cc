@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include <time.h>
-#include "../dst/topmessage.pb.h"
+#include "../protolib/test/topmessage.pb.h"
 using namespace std;
 
 // print the information of the given message

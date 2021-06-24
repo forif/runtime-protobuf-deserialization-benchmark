@@ -1,0 +1,38 @@
+// [START declaration]
+syntax = "proto3";
+import "test/topmessage.proto";
+
+// [START messages]
+// compile code:
+// protoc -I=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/src 
+// --cpp_out=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib 
+// crestmessage.proto --proto_path=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib
+
+message CrestMessage {
+    int32 id = 1;
+    repeated string name = 2;
+    map<int32, string> hash = 3;
+    TopMessage topM = 4;
+    NestMessage nestM = 5;
+
+    enum EnumFruits {
+        reserved 7 to 20;
+        APPLE = 0;
+        PEAR = 1;
+        PEACH = 2;
+        BANANA = 3;
+        STRAWBERRY = 4;
+        CHOCOLATE = 5;
+    }
+    EnumFruits fruit = 21;
+
+    oneof PickOne {
+        bool red = 23;
+        bool blue = 24;
+    }
+}
+
+message NestMessage {
+    int32 id = 1;
+    string name = 2;
+}

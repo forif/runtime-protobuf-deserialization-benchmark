@@ -3,8 +3,10 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include "../dst/topmessage.pb.h"
+#include "../protolib/test/topmessage.pb.h"
+#include "../protolib/crestmessage.pb.h"
 using namespace std;
+using namespace google::protobuf;
 
 // This function generates a random string with length [1,100]
 string generateRandomString() {
@@ -19,17 +21,73 @@ string generateRandomString() {
 }
 
 // This function fills a TopMessage with random values for each field
-void generateOne(TopMessage* message) {
+void generateTop(TopMessage* message) {
     message -> set_id(rand());
     message -> set_val(((double) rand() / (double) RAND_MAX));
     message -> set_name(generateRandomString());
     message -> set_checked(rand() % 2 == 0);
 
     // print out all values for checking
-    // cout << "Message ID: " << message -> id() << endl;
-    // cout << "Message val: " << message -> val() << endl;
-    // cout << "Message name: " << message -> name() << endl;
-    // cout << "Message checked: " << message -> checked() << endl;
+    cout << "Message ID: " << message -> id() << endl;
+    cout << "Message val: " << message -> val() << endl;
+    cout << "Message name: " << message -> name() << endl;
+    cout << "Message checked: " << message -> checked() << endl;
+}
+
+void generateNest(NestMessage* message) {
+    message -> set_id(rand());
+    message -> set_name(generateRandomString());
+
+    cout << "Message ID: " << message -> id() << endl;
+    cout << "Message name: " << message -> name() << endl;
+}
+
+void generateCrest(CrestMessage* message) {
+    message -> set_id(rand());
+    message -> set_name(1, generateRandomString());
+    message -> set_name(2, generateRandomString());
+
+    cout << "Message ID: " << message -> id() << endl;
+    cout << "Message name 1: " << message -> name(1) << endl;
+    cout << "Message name 2: " << message -> name(2) << endl;
+
+    int r = rand() % 10 + 5;
+    for (int i = 0; i < r; i ++) {
+        (*message->mutable_hash())[rand()] = generateRandomString();
+    }
+    
+    // std::map<int32, string> standard_map(message.weight().begin(), message.weight().end());
+    for(auto elem : message->hash()) {
+        std::cout << elem.first << " " << elem.second << endl;
+    }
+
+    int f = rand() % 6;
+    switch (f) {
+        case 0: message -> set_fruit(CrestMessage::APPLE); break;
+        case 1: message -> set_fruit(CrestMessage::PEAR); break;
+        case 2: message -> set_fruit(CrestMessage::PEACH); break;
+        case 3: message -> set_fruit(CrestMessage::BANANA); break;
+        case 4: message -> set_fruit(CrestMessage::STRAWBERRY); break;
+        case 5: message -> set_fruit(CrestMessage::CHOCOLATE); break;
+    }
+
+    int c = rand() % 2;
+    switch (c) {
+        case 0: message -> set_red(true); break;
+        case 1: message -> set_blue(true); break;
+    }
+
+    cout << "Message fruit enum: " << message -> fruit() << endl;
+    cout << "Message oneof red: " << message -> red() << endl;
+    cout << "Message oneof blue: " << message -> blue() << endl;
+
+    TopMessage* top;
+    generateTop(top);
+    message -> set_allocated_topm(top);
+
+    NestMessage* nest;
+    generateNest(nest);
+    message -> set_allocated_nestm(nest);
 }
 
 // This function checks if a file exists
@@ -76,8 +134,8 @@ int main(int argc, char* argv[]) {
         cout << "Current message #: " << i << endl;
 
         // generate a new message
-        TopMessage message;
-        generateOne(&message);
+        CrestMessage message;
+        generateCrest(&message);
 
         // serialize and save the new message and its size in the file
         string serializedMessage;
