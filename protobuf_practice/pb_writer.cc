@@ -3,8 +3,8 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include "../protolib/test/topmessage.pb.h"
-#include "../protolib/crestmessage.pb.h"
+#include "../../lib/protolib/test/topmessage.pb.h"
+#include "../../lib/protolib/crestmessage.pb.h"
 using namespace std;
 using namespace google::protobuf;
 
@@ -111,7 +111,7 @@ bool fileExists(const char *fileName) {
 }
 
 // Main function: generate a # (specified by user) of messages and serialize them
-// compile cmd: g++ -o pb_writer pb_writer.cc ../protolib/test/topmessage.pb.cc ../protolib/crestmessage.pb.cc -I ../protolib/ -lprotobuf
+// compile cmd: g++ -o pb_writer pb_writer.cc ../../lib/protolib/test/topmessage.pb.cc ../../lib/protolib/crestmessage.pb.cc -I ../../lib/protolib/ -lprotobuf
 int main(int argc, char* argv[]) {
     // GOOGLE_PROTOBUF_VERIFY_VERSION;
 

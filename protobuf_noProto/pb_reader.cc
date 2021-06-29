@@ -179,7 +179,7 @@ void readMessage(Message* mutable_msg) {
 }
 
 // Main function: generate deserialze the messages and print them
-// sample: ./pb_reader ../protolib/crestmessage.proto ../protobuf_practice/messages.txt CrestMessage 5
+// sample: ./pb_reader ../../lib/protolib/crestmessage.proto ../protobuf_practice/messages.txt CrestMessage 5
 // compile cmd: g++ -o pb_reader pb_reader.cc -lprotobuf -lpthread
 int main(int argc, char* argv[]) {
     // GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -240,6 +240,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < repeats; i ++) {
         // for each message, start the timer individually
         clk = clock();
+        cout << "No :" << i << endl;
         
         // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
         // cout << "building starts: " << endl;

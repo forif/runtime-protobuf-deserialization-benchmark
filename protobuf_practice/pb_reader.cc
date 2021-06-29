@@ -4,8 +4,8 @@
 #include <string>
 #include <cstdlib>
 #include <time.h>
-#include "../protolib/test/topmessage.pb.h"
-#include "../protolib/crestmessage.pb.h"
+#include "../../lib/protolib/test/topmessage.pb.h"
+#include "../../lib/protolib/crestmessage.pb.h"
 using namespace std;
 
 // print the information of the given message
@@ -43,7 +43,7 @@ bool fileExists(const char *fileName) {
 
 // Main function: generate deserialze the messages and print them
 // sample: ./pb_reader 5 messages.txt
-// compile cmd: g++ -o pb_reader pb_reader.cc ../protolib/test/topmessage.pb.cc ../protolib/crestmessage.pb.cc -I ../protolib -lprotobuf
+// compile cmd: g++ -o pb_reader pb_reader.cc ../../lib/protolib/test/topmessage.pb.cc ../../lib/protolib/crestmessage.pb.cc -I ../../lib/protolib/ -lprotobuf
 int main(int argc, char* argv[]) {
     // GOOGLE_PROTOBUF_VERIFY_VERSION;
 
