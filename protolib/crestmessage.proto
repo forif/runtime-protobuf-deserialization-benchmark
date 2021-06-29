@@ -8,6 +8,10 @@ import "test/topmessage.proto";
 // --cpp_out=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib 
 // crestmessage.proto --proto_path=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib
 
+// protoc -I=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/src 
+// --cpp_out=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib 
+// crestmessage.proto --proto_path=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib
+
 message CrestMessage {
     int32 id = 1;
     repeated string name = 2;

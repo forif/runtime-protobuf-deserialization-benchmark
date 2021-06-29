@@ -5,14 +5,34 @@
 #include <cstdlib>
 #include <time.h>
 #include "../protolib/test/topmessage.pb.h"
+#include "../protolib/crestmessage.pb.h"
 using namespace std;
 
 // print the information of the given message
-void readMessage(TopMessage* message) {
+void readMessage(CrestMessage* message) {
     cout << "Message ID : " << message -> id() << endl;
-    cout << "Message val: " << message -> val() << endl;
-    cout << "Message name: " << message -> name() << endl;
-    cout << "Message checked: " << message -> checked() << endl;
+    cout << "Message name 1: " << message -> name(0) << endl;
+    cout << "Message name 2: " << message -> name(1) << endl;
+
+    int count = 0;
+    for(auto elem : message->hash()) {
+        std::cout << "map element " << count << ": " << elem.first << " " << elem.second << endl;
+        count++;
+    }
+
+    cout << "Message fruit enum: " << message -> fruit() << endl;
+    cout << "Message oneof red: " << message -> red() << endl;
+    cout << "Message oneof blue: " << message -> blue() << endl;
+
+    cout << "TopMessage:" << endl;
+    cout << "Message id: " << message -> topm().id() << endl;
+    cout << "Message name: " << message -> topm().name() << endl;
+    cout << "Message val: " << message -> topm().val() << endl;
+    cout << "Message checked: " << message -> topm().checked() << endl;
+
+    cout << "NestMessage:" << endl;
+    cout << "Message id: " << message -> nestm().id() << endl;
+    cout << "Message name: " << message -> nestm().name() << endl;
 }
 
 // This function checks if a file exists
@@ -22,7 +42,8 @@ bool fileExists(const char *fileName) {
 }
 
 // Main function: generate deserialze the messages and print them
-// compile cmd: g++ -o pb_reader pb_reader.cc ../dst/topmessage.pb.cc -lprotobuf
+// sample: ./pb_reader 5 messages.txt
+// compile cmd: g++ -o pb_reader pb_reader.cc ../protolib/test/topmessage.pb.cc ../protolib/crestmessage.pb.cc -I ../protolib -lprotobuf
 int main(int argc, char* argv[]) {
     // GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -74,7 +95,7 @@ int main(int argc, char* argv[]) {
 
         char buffer[size];
         // string serializedMessage;
-        TopMessage message;
+        CrestMessage message;
         messageFile.read(buffer, size);
         // serializedMessage = buffer;
         // message.ParseFromString(serializedMessage);
