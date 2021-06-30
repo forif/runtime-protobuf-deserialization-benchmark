@@ -22,7 +22,8 @@ using namespace google::protobuf::compiler;
 using namespace google::protobuf::util;
 using namespace std;
 
-DescriptorPool* pool = new DescriptorPool;
+// DescriptorPool* pool = new DescriptorPool;
+shared_ptr<DescriptorPool> pool = make_shared<DescriptorPool>();
 
 // This function removes the last part in a path
 string removeLast(string path) {
@@ -236,50 +237,54 @@ int main(int argc, char* argv[]) {
     double totalTime = 0;
     clock_t clk;
 
+    // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
+    cout << "building starts: " << endl;
+    string file_name = definition_path.substr(definition_path.find_last_of("/\\") + 1);
+    const FileDescriptor* file_desc = buildFileDescriptor(definition_path, file_name);
+    if (!file_desc) return -4;
+    cout << "proto parsing done." << endl;
+
+    // there may be multiple messages in one file, loop through them and
+    // find the message matching the one in the serialized file
+    cout << "looking for file index for " << message_name << ": " << endl;
+    int ser_file_index = findFileIndex(file_desc, message_name);
+    cout << "ser_file_index: " << ser_file_index << endl;
+
+    // Create an empty Message object that will hold the deserialized message with Descriptor
+    string message_type = file_desc -> message_type(ser_file_index) -> name();
+    cout << "result message type: " << message_type << endl;
+
+    const Descriptor* message_desc = file_desc->FindMessageTypeByName(message_type);
+
+    cout << "building factory." << endl;
+    DynamicMessageFactory factory;
+    const Message* prototype_msg = factory.GetPrototype(message_desc);
+    if (prototype_msg == NULL) {
+        cerr << "Cannot create prototype message from message descriptor";
+        return -8;
+    }
+    
+    cout << "building mutable message." << endl;
+    Message* mutable_msg = prototype_msg->New();
+    if (mutable_msg == NULL) {
+        cerr << "Failed in prototype_msg->New(); to create mutable message";
+        return -9;
+    }
+
     // repeat reading the message
     for (int i = 0; i < repeats; i ++) {
         // for each message, start the timer individually
-        clk = clock();
         cout << "No :" << i << endl;
+        clk = clock();
         
-        // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
-        // cout << "building starts: " << endl;
-        string file_name = definition_path.substr(definition_path.find_last_of("/\\") + 1);
-        const FileDescriptor* file_desc = buildFileDescriptor(definition_path, file_name);
-        if (!file_desc) return -4;
-        // cout << "proto parsing done." << endl;
-
-        // there may be multiple messages in one file, loop through them and
-        // find the message matching the one in the serialized file
-        // cout << "looking for file index for " << message_name << ": " << endl;
-        int ser_file_index = findFileIndex(file_desc, message_name);
-        // cout << "ser_file_index: " << ser_file_index << endl;
-
-        // Create an empty Message object that will hold the deserialized message with Descriptor
-        string message_type = file_desc -> message_type(ser_file_index) -> name();
-        cout << "result message type: " << message_type << endl;
-
-        const Descriptor* message_desc = file_desc->FindMessageTypeByName(message_type);
-
-        DynamicMessageFactory factory;
-        const Message* prototype_msg = factory.GetPrototype(message_desc);
-        if (prototype_msg == NULL) {
-            cerr << "Cannot create prototype message from message descriptor";
-            return -8;
-        }
-        
-        Message* mutable_msg = prototype_msg->New();
-        if (mutable_msg == NULL) {
-            cerr << "Failed in prototype_msg->New(); to create mutable message";
-            return -9;
-        }
-
         // read the data in serialized file into the created empty message object
+        // cout << "reading in size." << endl;
         int size;
         char sizeBuffer[4];
         ser_messageFile.read(sizeBuffer, 4);
         size = atoi(sizeBuffer);
 
+        // cout << "reading in message." << endl;
         char buffer[size];
         ser_messageFile.read(buffer, size);
         mutable_msg -> ParseFromArray(buffer, size);
@@ -291,9 +296,10 @@ int main(int argc, char* argv[]) {
         // read the deserialized message
         readMessage(mutable_msg);
 
-        // clear the pool
-        delete pool;
-        pool = new DescriptorPool;
+        // clear the pools
+        mutable_msg->Clear();
+        // pool = nullptr;
+        // pool = make_shared<DescriptorPool>();
     }
 
     // calculate performance
@@ -302,6 +308,6 @@ int main(int argc, char* argv[]) {
     cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 
     // close the pool
-    delete pool;
+    pool = nullptr;
     return 0;
 }
