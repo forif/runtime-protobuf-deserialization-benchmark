@@ -74,6 +74,7 @@ int main(int argc, char* argv[]) {
     // open the file saving messages
     ifstream messageFile;
     messageFile.open(path, ios::in | ios::binary);
+    CrestMessage message;
 
     // start the time and byte counter
     int totalBytes = 0;
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // repeat generating one message
     for(int i = 0; i < repeat; i ++) {
-        cout << "Current message #: " << i << endl;
+        // cout << "Current message #: " << i << endl;
         // for each message, start the timer individually
         clk = clock();
 
@@ -95,7 +96,6 @@ int main(int argc, char* argv[]) {
 
         char buffer[size];
         // string serializedMessage;
-        CrestMessage message;
         messageFile.read(buffer, size);
         // serializedMessage = buffer;
         // message.ParseFromString(serializedMessage);
@@ -106,11 +106,11 @@ int main(int argc, char* argv[]) {
         totalTime += (float) (clock() - clk) / CLOCKS_PER_SEC;
 
         // read the message
-        readMessage(&message);
+        // readMessage(&message);
     }
 
     // calculate performance
-    cout << "Performance (printing out not counted):" << endl;
+    cout << "Performance of static reader (printing out not counted):" << endl;
     cout << "Number of messages processed per second: " << repeat / totalTime << endl;
     cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 

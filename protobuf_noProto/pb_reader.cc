@@ -238,25 +238,25 @@ int main(int argc, char* argv[]) {
     clock_t clk;
 
     // FileDescriptor contains all necessary meta data to describe all the members of a message that adheres to the proto definition
-    cout << "building starts: " << endl;
+    // cout << "building starts: " << endl;
     string file_name = definition_path.substr(definition_path.find_last_of("/\\") + 1);
     const FileDescriptor* file_desc = buildFileDescriptor(definition_path, file_name);
     if (!file_desc) return -4;
-    cout << "proto parsing done." << endl;
+    // cout << "proto parsing done." << endl;
 
     // there may be multiple messages in one file, loop through them and
     // find the message matching the one in the serialized file
-    cout << "looking for file index for " << message_name << ": " << endl;
+    // cout << "looking for file index for " << message_name << ": " << endl;
     int ser_file_index = findFileIndex(file_desc, message_name);
-    cout << "ser_file_index: " << ser_file_index << endl;
+    // cout << "ser_file_index: " << ser_file_index << endl;
 
     // Create an empty Message object that will hold the deserialized message with Descriptor
     string message_type = file_desc -> message_type(ser_file_index) -> name();
-    cout << "result message type: " << message_type << endl;
+    // cout << "result message type: " << message_type << endl;
 
     const Descriptor* message_desc = file_desc->FindMessageTypeByName(message_type);
 
-    cout << "building factory." << endl;
+    // cout << "building factory." << endl;
     DynamicMessageFactory factory;
     const Message* prototype_msg = factory.GetPrototype(message_desc);
     if (prototype_msg == NULL) {
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
         return -8;
     }
     
-    cout << "building mutable message." << endl;
+    // cout << "building mutable message." << endl;
     Message* mutable_msg = prototype_msg->New();
     if (mutable_msg == NULL) {
         cerr << "Failed in prototype_msg->New(); to create mutable message";
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
     // repeat reading the message
     for (int i = 0; i < repeats; i ++) {
         // for each message, start the timer individually
-        cout << "No :" << i << endl;
+        // cout << "No :" << i << endl;
         clk = clock();
         
         // read the data in serialized file into the created empty message object
@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
         totalTime += (float) (clock() - clk) / CLOCKS_PER_SEC;
 
         // read the deserialized message
-        readMessage(mutable_msg);
+        // readMessage(mutable_msg);
 
         // clear the pools
         mutable_msg->Clear();
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
     }
 
     // calculate performance
-    cout << "Performance (printing out not counted):" << endl;
+    cout << "Performance of dynamic reader (printing out not counted):" << endl;
     cout << "Number of messages processed per second: " << repeats / totalTime << endl;
     cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 

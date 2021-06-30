@@ -44,14 +44,14 @@ void generateNest(NestMessage* message) {
 }
 
 void generateCrest(CrestMessage* message) {
-    cout << "CrestMessage:" << endl;
+    // cout << "CrestMessage:" << endl;
     message -> set_id(rand());
-    cout << "Message ID: " << message -> id() << endl;
+    // cout << "Message ID: " << message -> id() << endl;
 
     message -> add_name(generateRandomString());
     message -> add_name(generateRandomString());
-    cout << "Message name 1: " << message -> name(0) << endl;
-    cout << "Message name 2: " << message -> name(1) << endl;
+    // cout << "Message name 1: " << message -> name(0) << endl;
+    // cout << "Message name 2: " << message -> name(1) << endl;
 
     int r = rand() % 10 + 5;
     for (int i = 0; i < r; i ++) {
@@ -59,11 +59,11 @@ void generateCrest(CrestMessage* message) {
     }
     
     // std::map<int32, string> standard_map(message.weight().begin(), message.weight().end());
-    int count = 0;
-    for(auto elem : message->hash()) {
-        std::cout << "map element " << count << ": " << elem.first << " " << elem.second << endl;
-        count++;
-    }
+    // int count = 0;
+    // for(auto elem : message->hash()) {
+    //     std::cout << "map element " << count << ": " << elem.first << " " << elem.second << endl;
+    //     count++;
+    // }
 
     int f = rand() % 6;
     switch (f) {
@@ -81,27 +81,27 @@ void generateCrest(CrestMessage* message) {
         case 1: message -> set_blue(true); break;
     }
 
-    cout << "Message fruit enum: " << message -> fruit() << endl;
-    cout << "Message oneof red: " << message -> red() << endl;
-    cout << "Message oneof blue: " << message -> blue() << endl;
+    // cout << "Message fruit enum: " << message -> fruit() << endl;
+    // cout << "Message oneof red: " << message -> red() << endl;
+    // cout << "Message oneof blue: " << message -> blue() << endl;
 
-    cout << "TopMessage:" << endl;
+    // cout << "TopMessage:" << endl;
     message -> mutable_topm() -> set_id(rand());
     message -> mutable_topm() -> set_name(generateRandomString());
     message -> mutable_topm() -> set_val(((double) rand() / (double) RAND_MAX));
     message -> mutable_topm() -> set_checked(rand() % 2 == 0);
-    cout << "Message id: " << message -> topm().id() << endl;
-    cout << "Message name: " << message -> topm().name() << endl;
-    cout << "Message val: " << message -> topm().val() << endl;
-    cout << "Message checked: " << message -> topm().checked() << endl;
+    // cout << "Message id: " << message -> topm().id() << endl;
+    // cout << "Message name: " << message -> topm().name() << endl;
+    // cout << "Message val: " << message -> topm().val() << endl;
+    // cout << "Message checked: " << message -> topm().checked() << endl;
 
-    cout << "NestMessage:" << endl;
+    // cout << "NestMessage:" << endl;
     message -> mutable_nestm() -> set_id(rand());
     message -> mutable_nestm() -> set_name(generateRandomString());
-    cout << "Message id: " << message -> nestm().id() << endl;
-    cout << "Message name: " << message -> nestm().name() << endl;
+    // cout << "Message id: " << message -> nestm().id() << endl;
+    // cout << "Message name: " << message -> nestm().name() << endl;
 
-    cout << "CrestMessage size: " << message -> ByteSizeLong() << endl;
+    // cout << "CrestMessage size: " << message -> ByteSizeLong() << endl;
 }
 
 // This function checks if a file exists
@@ -150,17 +150,17 @@ int main(int argc, char* argv[]) {
         // generate a new message
         CrestMessage message;
         generateCrest(&message);
-        cout << "Message generation ends" << endl;
+        // cout << "Message generation ends" << endl;
 
         // serialize and save the new message and its size in the file
-        cout << "Serialization begins" << endl;
+        // cout << "Serialization begins" << endl;
         string serializedMessage;
         message.SerializeToString(&serializedMessage);
-        cout << "Serialization ends" << endl;
+        // cout << "Serialization ends" << endl;
 
         const char* buffer = serializedMessage.data();
         int size = serializedMessage.size();
-        cout << "Message size: " << size << endl;
+        // cout << "Message size: " << size << endl;
         messageFile.write(to_string(size).c_str(), 4);
         messageFile.write(buffer, size);
     }
