@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
     // repeat generating one message
     for(int i = 0; i < repeat; i ++) {
-        cout << "Current message #: " << i << endl;
+        // cout << "Current message #: " << i << endl;
 
         // generate a new message
         CrestMessage message;
