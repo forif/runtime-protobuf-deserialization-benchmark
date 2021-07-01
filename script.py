@@ -3,12 +3,12 @@ import os
 import sys
 
 dataGen = "F"
-repeats = "10000"
+repeats = "5"
 path = "messages.txt"
 
-# argv[1] is whether to write a new file or not
-# argv[2] is number of messages
-# argv[3] is path of file
+# argv[1] is whether to write a new file or not, default "F" (no), "T" if yes
+# argv[2] is number of messages, default 5
+# argv[3] is path of file, default messages.txt
 
 if len(sys.argv) > 1:
     dataGen = sys.argv[1]
