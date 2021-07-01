@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     }
 
     // argv[1] is number of repeats, default 5
-    // argv[2] is the path of folder for messages, default ../messages.txt
+    // argv[2] is the path of folder for messages, default messages.txt
     int repeat = 1;
     string path = "messages.txt";
     

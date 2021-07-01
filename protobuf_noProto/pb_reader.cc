@@ -195,8 +195,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // default path of proto definition (argv[1]) is ../topmessage.proto
-    string definition_path = "test/topmessage.proto";
+    // default path of proto definition (argv[1]) is ../../lib/protolib/crestmessage.proto
+    string definition_path = "../../lib/protolib/crestmessage.proto";
     if (argc > 1 and *argv[1]) {
         definition_path = argv[1];
     }
@@ -205,8 +205,8 @@ int main(int argc, char* argv[]) {
         return -2;
     }
 
-    // default path of serialized file (argv[2]) is ../sample.txt
-    string ser_file_path = "sample.txt";
+    // default path of serialized file (argv[2]) is ../protobuf_practice/messages.txt
+    string ser_file_path = "../protobuf_practice/messages.txt";
     if (argc > 2 and *argv[2]) {
         ser_file_path = argv[2];
     }
@@ -215,14 +215,14 @@ int main(int argc, char* argv[]) {
         return -3;
     }
 
-    // default message name (argv[3]) is TopMessage
-    string message_name = "TopMessage";
+    // default message name (argv[3]) is CrestMessage
+    string message_name = "CrestMessage";
     if (argc > 3 and *argv[3]) {
         message_name = argv[3];
     }
 
-    // default number of repeats is 1
-    int repeats = 1;
+    // default number of repeats is 5
+    int repeats = 5;
     if (argc > 4 and *argv[4]) {
         repeats = atoi(argv[4]);
     }
