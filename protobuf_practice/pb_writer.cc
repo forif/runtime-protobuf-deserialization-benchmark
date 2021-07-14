@@ -148,6 +148,8 @@ int main(int argc, char* argv[]) {
         // cout << "Current message #: " << i << endl;
 
         // generate a new message
+        // TopMessage message;
+        // generateTop(&message);
         CrestMessage message;
         generateCrest(&message);
         // cout << "Message generation ends" << endl;

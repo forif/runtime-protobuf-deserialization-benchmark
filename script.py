@@ -25,3 +25,5 @@ p1 = subprocess.Popen(["./static_reader", repeats, path], cwd = "protobuf_practi
 p1.wait()
 p2 = subprocess.Popen(["./dynamic_reader", "../../lib/protolib/crestmessage.proto", os.path.join("../protobuf_practice", path), "CrestMessage", repeats], cwd = "protobuf_noProto")
 p2.wait()
+p3 = subprocess.Popen(["node", "nodejs_reader.js", "../../lib/protolib/crestmessage.proto", os.path.join("../protobuf_practice", path), "CrestMessage", repeats], cwd = "protobuf_noProto")
+p3.wait()
