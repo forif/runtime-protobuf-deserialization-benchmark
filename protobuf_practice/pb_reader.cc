@@ -4,9 +4,11 @@
 #include <string>
 #include <cstdlib>
 #include <time.h>
+#include <google/protobuf/util/json_util.h>
 #include "../../lib/protolib/test/topmessage.pb.h"
 #include "../../lib/protolib/crestmessage.pb.h"
 using namespace std;
+using namespace google::protobuf::util;
 
 // print the information of the given message
 void readMessage(CrestMessage* message) {
@@ -33,6 +35,17 @@ void readMessage(CrestMessage* message) {
     cout << "NestMessage:" << endl;
     cout << "Message id: " << message -> nestm().id() << endl;
     cout << "Message name: " << message -> nestm().name() << endl;
+}
+
+// convert the message to json
+void convertToJSON(CrestMessage* msg) {
+    string output;
+    JsonPrintOptions options;
+    options.add_whitespace = true;
+    options.always_print_primitive_fields = true;
+    options.preserve_proto_field_names = true;
+    MessageToJsonString(*msg, &output, options);
+    // cout << output << endl;
 }
 
 // This function checks if a file exists
@@ -84,8 +97,6 @@ int main(int argc, char* argv[]) {
     // repeat generating one message
     for(int i = 0; i < repeat; i ++) {
         // cout << "Current message #: " << i << endl;
-        // for each message, start the timer individually
-        clk = clock();
 
         // deserialize the message
         int size;
@@ -99,18 +110,21 @@ int main(int argc, char* argv[]) {
         messageFile.read(buffer, size);
         // serializedMessage = buffer;
         // message.ParseFromString(serializedMessage);
+
+        // for each message, start the timer individually, starting from deserializing
+        clk = clock();
         message.ParseFromArray(buffer, size);
+
+        // convert deserialized message to json and read it
+        convertToJSON(&message);
 
         // increment time and byte counter
         totalBytes += size;
         totalTime += (float) (clock() - clk) / CLOCKS_PER_SEC;
-
-        // read the message
-        // readMessage(&message);
     }
 
     // calculate performance
-    cout << "Performance of static reader (printing out not counted):" << endl;
+    cout << "Performance of c++ static reader:" << endl;
     cout << "Number of messages processed per second: " << repeat / totalTime << endl;
     cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 

@@ -10,7 +10,7 @@ const { toNamespacedPath } = require("path");
 var proto_path = "../../lib/protolib/crestmessage.proto";
 var file_path = "../protobuf_practice/messages.txt";
 var message_name = "CrestMessage";
-var repeats = 500;
+var repeats = 5;
 
 if (process.argv.length > 2) proto_path = process.argv[2];
 if (process.argv.length > 3) file_path = process.argv[3];
@@ -60,17 +60,18 @@ protobuf.load(proto_path, function (err, root) {
 				// keep track of time and bytes taken by decoding the array to message and converting it to json object
 				var hrstart = process.hrtime()
 				let msg = message.decode(buffer);
+
+				// print out the deserialized message
+				let object = message.toObject(msg, {
+					longs: String,
+					enums: String,
+					bytes: String,
+				});
+				// console.log("object", object);
+				
 				var hrend = process.hrtime(hrstart);
 				totalTime = totalTime + hrend[0] + hrend[1] / 1000000000; // hrend[0] is sec, hrend[1] is nanosec
 				totalBytes += size;
-
-				// print out the deserialized message
-				// let object = message.toObject(msg, {
-				// 	longs: String,
-				// 	enums: String,
-				// 	bytes: String,
-				// });
-				// console.log("object", object);
 			});
 		}
 

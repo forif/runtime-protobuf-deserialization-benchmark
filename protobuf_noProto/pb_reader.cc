@@ -176,7 +176,7 @@ void readMessage(Message* mutable_msg) {
     options.always_print_primitive_fields = true;
     options.preserve_proto_field_names = true;
     MessageToJsonString(*mutable_msg, &output, options);
-    cout << output << endl;
+    // cout << output << endl;
 }
 
 // Main function: generate deserialze the messages and print them
@@ -273,10 +273,6 @@ int main(int argc, char* argv[]) {
 
     // repeat reading the message
     for (int i = 0; i < repeats; i ++) {
-        // for each message, start the timer individually
-        // cout << "No :" << i << endl;
-        clk = clock();
-        
         // read the data in serialized file into the created empty message object
         // cout << "reading in size." << endl;
         int size;
@@ -284,26 +280,30 @@ int main(int argc, char* argv[]) {
         ser_messageFile.read(sizeBuffer, 4);
         size = atoi(sizeBuffer);
 
-        // cout << "reading in message." << endl;
+        // read in the message
         char buffer[size];
         ser_messageFile.read(buffer, size);
+
+        // for each message, start the timer individually, starting from deserializing
+        // cout << "No :" << i << endl;
+        clk = clock();
         mutable_msg -> ParseFromArray(buffer, size);
+
+        // convert the deserialized message to json and read it
+        readMessage(mutable_msg);
 
         // increment time and byte counter
         totalBytes += size;
         totalTime += (float) (clock() - clk) / CLOCKS_PER_SEC;
 
-        // read the deserialized message
-        // readMessage(mutable_msg);
-
-        // clear the pools
-        mutable_msg->Clear();
+        // clear the message
+        mutable_msg -> Clear();
         // pool = nullptr;
         // pool = make_shared<DescriptorPool>();
     }
 
     // calculate performance
-    cout << "Performance of dynamic reader (printing out not counted):" << endl;
+    cout << "Performance of c++ dynamic reader:" << endl;
     cout << "Number of messages processed per second: " << repeats / totalTime << endl;
     cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 
