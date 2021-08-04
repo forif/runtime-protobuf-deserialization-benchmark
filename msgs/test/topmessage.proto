@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+// compile code:
+// protoc -I=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/src 
+// --cpp_out=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/test 
+// topmessage.proto --proto_path=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/test
+
+// protoc -I=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/src 
+// --cpp_out=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib/ 
+// test/topmessage.proto --proto_path=/mnt/c/Users/get19/Documents/intern/tencent_intern/protolib
+
+message TopMessage {
+    int32 id = 1;
+    double val = 2;
+    string name = 3;
+    bool checked = 4;
+}
