@@ -94,8 +94,8 @@ int main(int argc, char* argv[]) {
         // serialize and save the new message and its size in the file
         message.SerializeToString(&serializedMessage);
 
-        size_t sz = serializedMessage.size();
-        messageFile.write(reinterpret_cast<char*>(&sz), sizeof(size_t));
+        int sz = serializedMessage.size();
+        messageFile.write(reinterpret_cast<char*>(&sz), sizeof(int));
         messageFile.write(serializedMessage.data(), sz);
     }
 

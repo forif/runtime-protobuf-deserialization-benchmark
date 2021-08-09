@@ -3,19 +3,17 @@ const fs = require("fs");
 const util = require('util');
 const { toNamespacedPath } = require("path");
 
+
 // argv[2] is the path of given .proto file that contains the protobuf definition
 // argv[3] is the path of serialized file that will needs to be deserialized
 // argv[4] is the name of the message in the serialized file
-// argv[5] is the number of repeats
-var proto_path = "../../lib/protolib/crestmessage.proto";
-var file_path = "../protobuf_practice/messages.txt";
+var proto_path = "../msgs/crestmessage.proto";
+var file_path = "../msgs.pbbin";
 var message_name = "CrestMessage";
-var repeats = 5;
 
 if (process.argv.length > 2) proto_path = process.argv[2];
 if (process.argv.length > 3) file_path = process.argv[3];
 if (process.argv.length > 4) message_name = process.argv[4];
-if (process.argv.length > 5) repeats = process.argv[5];
 
 
 protobuf.load(proto_path, function (err, root) {
@@ -42,8 +40,7 @@ protobuf.load(proto_path, function (err, root) {
 			var sizeBuffer = new Buffer.alloc(4);
 			var size = 0;
 			await fs.readAsync(fd, sizeBuffer, 0, 4, pos).then(data => {
-				// console.log(data);
-				size = parseInt(sizeBuffer.slice(0, data['bytesRead']).toString());
+        size = data['buffer'].readInt32LE(0);
 				pos += 4;
 			});
 
@@ -58,7 +55,7 @@ protobuf.load(proto_path, function (err, root) {
 				i += 1;
 
 				// keep track of time and bytes taken by decoding the array to message and converting it to json object
-				var hrstart = process.hrtime()
+				var hrstart = process.hrtime();
 				let msg = message.decode(buffer);
 
 				// print out the deserialized message
@@ -67,30 +64,29 @@ protobuf.load(proto_path, function (err, root) {
 					enums: String,
 					bytes: String,
 				});
-				// console.log("object", object);
 				
 				var hrend = process.hrtime(hrstart);
-				totalTime = totalTime + hrend[0] + hrend[1] / 1000000000; // hrend[0] is sec, hrend[1] is nanosec
+				totalTime += (hrend[0] + hrend[1] / 1000000000);
 				totalBytes += size;
 			});
 		}
 
 		// a function that reads the size and then the content of the message
 		async function read_whole () {
-			// await console.log(i + "th file");
-
 			message_size = await read_size();
 			await read_message(message_size);
 		}
 
 		// repeat reading for the given number of times
 		const message = root.lookupType(message_name);
+    repeats = await read_size();
+    console.log("total " + repeats + " messages in file " + file_path);
 		for (let i = 0; i < repeats; i ++) {
 			await read_whole();
 		}
 
 		// print results
-		console.log("Performance of Nodejs dynamic reader:");
+		console.log("Performance of Nodejs dynamic reader: " + totalTime + "s");
 		console.log("Number of messages processed per second: " + repeats / totalTime);
 		console.log("Number of bytes processed per second: " + totalBytes / totalTime);
 	});

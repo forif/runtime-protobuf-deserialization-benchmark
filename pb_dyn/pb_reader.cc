@@ -265,8 +265,8 @@ int main(int argc, char* argv[]) {
     // repeat reading the message
     for (int i = 0; i < repeats; i ++) {
         // read the data in serialized file into the created empty message object
-        size_t size;
-        ser_messageFile.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+        int size;
+        ser_messageFile.read(reinterpret_cast<char*>(&size), sizeof(int));
 
         // read in the message
         vector<char> buffer(size);
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
     }
 
     // calculate performance
-    cout << "Performance of c++ dynamic reader:" << endl;
+    cout << "Performance of c++ dynamic reader: total " << totalTime << "s" << endl;
     cout << "Number of messages processed per second: " << repeats / totalTime << endl;
     cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
 

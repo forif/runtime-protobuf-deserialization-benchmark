@@ -76,8 +76,8 @@ int main(int argc, char* argv[]) {
         // cout << "Current message #: " << i << endl;
 
         // deserialize the message
-        size_t size;
-        messageFile.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+        int size;
+        messageFile.read(reinterpret_cast<char*>(&size), sizeof(int));
 
         vector<char> buffer(size);
         messageFile.read(buffer.data(), size);
