@@ -25,9 +25,7 @@ protobuf.load(proto_path, function (err, root) {
 		}
 
 		// read the file
-		// set up variables, i is index of messages, pos is current position in the file
 		var pos = 0;
-		var i = 0;
 		var totalTime = 0;
 		var totalBytes = 0;
 
@@ -46,7 +44,6 @@ protobuf.load(proto_path, function (err, root) {
 			var buffer = new Buffer.alloc(size);
 			fs.readSync(fd, buffer, 0, size, pos);
 			pos += size;
-			i += 1;
 
 			// keep track of time and bytes taken by decoding the array to message and converting it to json object
       let mstart = performance.now();
