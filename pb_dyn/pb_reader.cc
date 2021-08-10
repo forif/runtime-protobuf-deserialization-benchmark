@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -65,7 +66,7 @@ string getNewPath(string old_path, string relative_path) {
 // Try your absolute best to avoid importing the same dependency between two .proto files, 
 // especially if they are not in the same folder, as this does not seem to be supported
 const FileDescriptor* buildFileDescriptor(const string file_path, const std::string& file_name) {
-    cout << "building file descriptor [" << file_path << "] name: " << file_name << endl;
+    //cout << "building file descriptor [" << file_path << "] name: " << file_name << endl;
 
     // open the proto definition file
     int def_messageFile = open(file_path.c_str(), O_RDONLY);
@@ -90,7 +91,7 @@ const FileDescriptor* buildFileDescriptor(const string file_path, const std::str
     // check if there are any dependency messages. If there is, build them first
     for (int i = 0; i < file_desc_proto.dependency_size(); i ++) {
         string temp = file_desc_proto.dependency(i);
-        cout << "found dependency proto file: " << temp << endl;
+        //cout << "found dependency proto file: " << temp << endl;
         buildFileDescriptor(getNewPath(file_path, temp), temp);
     }
 
@@ -255,7 +256,7 @@ int main(int argc, char* argv[]) {
 
     int repeats = 0;
     ser_messageFile.read(reinterpret_cast<char*>(&repeats), sizeof(repeats));
-    cout << "total " << repeats << " messages in " << ser_file_path << endl;
+    cout << ">>>>>>>>>>>>>>>> total " << repeats << " messages in " << ser_file_path << endl;
 
     // start the time and byte counter
     int64_t totalBytes = 0;
@@ -263,6 +264,7 @@ int main(int argc, char* argv[]) {
     clock_t clk;
 
     // repeat reading the message
+    clock_t tclk = clock();
     for (int i = 0; i < repeats; i ++) {
         // read the data in serialized file into the created empty message object
         int size;
@@ -289,11 +291,12 @@ int main(int argc, char* argv[]) {
         // clear the message
         mutable_msg -> Clear();
     }
+    clock_t tclke = clock();
 
     // calculate performance
-    cout << "Performance of c++ dynamic reader: total " << totalTime << "s" << endl;
-    cout << "Number of messages processed per second: " << repeats / totalTime << endl;
-    cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
+    cout << "Performance of c++ dynamic reader: " << std::fixed << std::setprecision(3) << totalTime << "s/" << ((double) (tclke - tclk) / CLOCKS_PER_SEC) << "s" << endl;
+    cout << "Number of messages processed per second: " << (int) (repeats / totalTime) << endl;
+    cout << "Number of bytes processed per second: " << std::setprecision(3) << ((totalBytes / totalTime) / 1000000) << "M" << endl;
 
     // close the pool
     mutable_msg.reset();

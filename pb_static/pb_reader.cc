@@ -2,6 +2,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <time.h>
 
@@ -69,9 +70,10 @@ int main(int argc, char* argv[]) {
 
     int repeat = 0;
     messageFile.read(reinterpret_cast<char*>(&repeat), sizeof(repeat));
-    cout << "total " << repeat << " messages in " << path << endl;
+    cout << ">>>>>>>>>>>>>>>> total " << repeat << " messages in " << path << endl;
 
     // repeat generating one message
+    clock_t tclk = clock();
     for(int i = 0; i < repeat; i ++) {
         // cout << "Current message #: " << i << endl;
 
@@ -95,12 +97,16 @@ int main(int argc, char* argv[]) {
         // increment time and byte counter
         totalTime += (double) (clock() - clk) / CLOCKS_PER_SEC;
         totalBytes += size;
+
+        // clear the message
+        message.Clear();
     }
+    clock_t tclke = clock();
 
     // calculate performance
-    cout << "Performance of c++ static reader:" << endl;
-    cout << "Number of messages processed per second: " << repeat / totalTime << endl;
-    cout << "Number of bytes processed per second: " << totalBytes / totalTime << endl;
+    cout << "Performance of c++ static reader: " << std::fixed << std::setprecision(3) << totalTime << "s/" << ((double) (tclke - tclk) / CLOCKS_PER_SEC) << "s" << endl;
+    cout << "Number of messages processed per second: " << (int) (repeat / totalTime) << endl;
+    cout << "Number of bytes processed per second: " << std::setprecision(3) << ((totalBytes / totalTime) / 1000000) << "M" << endl;
 
     // close the file
     messageFile.close();

@@ -73,15 +73,16 @@ protobuf.load(proto_path, function (err, root) {
 		// repeat reading for the given number of times
 		const message = root.lookupType(message_name);
     repeats = read_size();
-    console.log("total " + repeats + " messages in file " + file_path);
+    console.log(">>>>>>>>>>>>>>>> total " + repeats + " messages in file " + file_path);
     let start = performance.now();
 		for (let i = 0; i < repeats; i ++) {
 			read_whole();
 		}
+    let end = performance.now();
 
 		// print results
-		console.log("Performance of Nodejs dynamic reader: " + totalTime + "s " + ((performance.now() - start) / 1000) + "s");
-		console.log("Number of messages processed per second: " + repeats / totalTime);
-		console.log("Number of bytes processed per second: " + totalBytes / totalTime);
+		console.log("Performance of Nodejs dynamic reader: " + totalTime.toFixed(3) + "s/" + ((end - start) / 1000).toFixed(3) + "s");
+		console.log("Number of messages processed per second: " + (repeats / totalTime).toFixed(0));
+		console.log("Number of bytes processed per second: " + ((totalBytes / totalTime) / 1000000).toFixed(3) + "M");
 	});
 });
